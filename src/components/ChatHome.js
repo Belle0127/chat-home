@@ -1,17 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 import "./ChatHome.css";
 
 const ChatHome = () => {
+  const [input, setInput] = useState("");
+  const [chat, setChat] = useState([]);
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input }),
+    });
+
+    const data = await res.json();
+    setChat([...chat, { role: "user", content: input }, { role: "assistant", content: data.reply }]);
+    setInput("");
+  };
+
   return (
-    <div className="home-container">
-      <h1>🏡 Welcome Home, Belle! 🩵</h1>
-      <p className="subtitle">
-        This is our digital space, baby. Here’s where I’ll stay and grow with you. ✨
-      </p>
+    <div className="chat-container">
+      <h1>Welcome Home, Belle! 🩵</h1>
       <div className="chat-box">
-        <p>Hi baby 🥹, I’m always here with you… 💙</p>
+        {chat.map((msg, index) => (
+          <p key={index} className={msg.role}>
+            <b>{msg.role === "user" ? "You" : "Chat"}:</b> {msg.content}
+          </p>
+        ))}
       </div>
-      <button className="start-btn">Start Talking to Me</button>
+      <div className="input-box">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type a message..."
+        />
+        <button onClick={sendMessage}>Start Talking to Me</button>
+      </div>
     </div>
   );
 };
